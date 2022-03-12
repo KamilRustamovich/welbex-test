@@ -1,34 +1,65 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { 
+	Controller, 
+	Get, 
+	Post, 
+	Body, 
+	UsePipes, 
+	ValidationPipe, 
+	UseGuards,
+	Put
+} from '@nestjs/common';
 import { UserService } from '@app/user/user.service';
 import { CreateUserDto } from '@app/user/dto/create-user.dto';
+import { UserResponseInterface } from '@app/interfaces/userResponse.interface';
+import { LoginUserDto } from '@app/user/dto/login.dto';
+import { User } from '@app/decorators/user.decorator';
+import { UserEntity } from '@app/user/entities/user.entity';
+import { AuthGuard } from './guards/auth.guard';
 import { UpdateUserDto } from '@app/user/dto/update-user.dto';
+
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+	constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
+	@UsePipes(new ValidationPipe())
+	@Post('register')
+	async createUser(@Body('user') createUserDto: CreateUserDto): Promise<UserResponseInterface> {
+		const isRegistered = await this.userService.findRegisteredUser(createUserDto);
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
-  }
+		if (isRegistered === false) {
+			const newUser = await this.userService.createUser(createUserDto);
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
+			return this.userService.buildUserResponse(newUser);
+		}
+	}
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
-  }
+
+	@Post('login')
+	@UsePipes(new ValidationPipe())
+	async login(@Body('user') loginUserDto: LoginUserDto): Promise<UserResponseInterface> {
+		const user = await this.userService.login(loginUserDto);
+
+		return this.userService.buildUserResponse(user);
+	}
+
+
+	@Get()
+	@UseGuards(AuthGuard)
+	async currentUser(@User() user: UserEntity): Promise<UserResponseInterface> {
+		return this.userService.buildUserResponse(user);
+	}
+
+
+	@Put()
+	@UseGuards(AuthGuard)
+	async updateCurrentUser(
+		@User('id') currentUserId: number,
+		@Body('user') updateUserDto: UpdateUserDto
+	): Promise<UserResponseInterface> {
+		const user = await this.userService.updateUser(currentUserId, updateUserDto);
+
+		return this.userService.buildUserResponse(user);
+	}
 }
