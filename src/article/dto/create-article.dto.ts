@@ -9,5 +9,8 @@ export class CreateArticleDto {
 	readonly text: string;
 
 	@IsString()
-	readonly media?: string;
+	readonly image: string;
+
+	@IsString()
+	readonly video: string;
 }
