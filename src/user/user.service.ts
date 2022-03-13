@@ -97,13 +97,25 @@ export class UserService {
 	}
 
 
-	findById(id: number): Promise<UserEntity> {
-		return this.userRepo.findOne(id);
+	async findByUserId(id: number): Promise<UserEntity> {
+		try { 
+			const user = await this.userRepo.findOne(id);
+
+			if (!user) {
+				throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+			}
+
+			return user;
+		} catch (error) {
+			this._logger.debug(error, 'findByUserId method error');
+
+			throw error;
+		}
 	}
 
 
 	async updateUser(userId: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
-		const user = await this.findById(userId);
+		const user = await this.findByUserId(userId);
 
 		Object.assign(user, updateUserDto);
 		
