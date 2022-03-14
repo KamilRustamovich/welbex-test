@@ -5,7 +5,6 @@ import { UserEntity } from '@app/user/entities/user.entity';
 import { ArticleEntity } from '@app/article/entities/article.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
-import { ArticleResponseInterface } from '@app/interfaces/articleResponse.interface';
 import slugify from 'slugify';
 import { FilesService } from '@app/files/files.service';
 
@@ -105,11 +104,6 @@ export class ArticleService {
 
 			throw error;
 		}
-	}
-
-
-	buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
-		return { article }
 	}
 
 

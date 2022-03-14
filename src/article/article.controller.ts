@@ -18,19 +18,13 @@ import { UpdateArticleDto } from '@app/article/dto/update-article.dto';
 import { AuthGuard } from '@app/user/guards/auth.guard';
 import { User } from '@app/decorators/user.decorator';
 import { UserEntity } from '@app/user/entities/user.entity';
-import { ArticleResponseInterface } from '@app/interfaces/articleResponse.interface';
 import { ArticleEntity } from '@app/article/entities/article.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FilesService } from '@app/files/files.service';
-import { MFile } from '@app/types/mfile.class';
 
 
 @Controller('articles')
 export class ArticleController {
-	constructor(
-		private readonly articleService: ArticleService,
-		private readonly fileService: FilesService
-	) {}
+	constructor(private readonly articleService: ArticleService) {}
 
 
 	@Post('create')
@@ -39,12 +33,10 @@ export class ArticleController {
 	@UseInterceptors(FileInterceptor('files'))
 	async createArticle(
 		@User() currentUser: UserEntity,
-		@Body('article') createArticleDto: CreateArticleDto,
+		@Body() createArticleDto: CreateArticleDto,
 		@UploadedFile() file: Express.Multer.File
-	): Promise<ArticleResponseInterface> {
-		const newArticle = await this.articleService.createArticle(currentUser, createArticleDto, file);
-
-		return this.articleService.buildArticleResponse(newArticle);
+	): Promise<ArticleEntity> {
+		return await this.articleService.createArticle(currentUser, createArticleDto, file);
 	}
 
 
@@ -56,10 +48,8 @@ export class ArticleController {
 
 
 	@Get(':slug')
-	async findArtucleBySlug(@Param('slug') slug: string): Promise<ArticleResponseInterface> {
-		const article = await this.articleService.findArtucleBySlug(slug);
-
-		return this.articleService.buildArticleResponse(article);
+	async findArtucleBySlug(@Param('slug') slug: string): Promise<ArticleEntity> {
+		return await this.articleService.findArtucleBySlug(slug);
 	}
 
 
@@ -69,11 +59,9 @@ export class ArticleController {
 	async updateArticle(
 		@User('id') currentUserId: number,
 		@Param('slug') slug: string, 
-		@Body('article') updateArticleDto: UpdateArticleDto
-	): Promise<ArticleResponseInterface> {
-		const article = await this.articleService.updateArticle(slug, currentUserId, updateArticleDto);
-
-		return this.articleService.buildArticleResponse(article);
+		@Body() updateArticleDto: UpdateArticleDto
+	): Promise<ArticleEntity> {
+		return await this.articleService.updateArticle(slug, currentUserId, updateArticleDto);
 	}
 
 	
