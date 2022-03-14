@@ -29,10 +29,10 @@ export class ArticleEntity {
 	text: string;
 
 	@Column({ default: ''})
-	image: string;
+	mediaURL: string;
 
 	@Column({ default: ''})
-	video: string;
+	mediaName: string;
 
 	@BeforeUpdate()
 	updateTimeStamp() {

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsObject, IsString } from "class-validator";
 
 export class CreateArticleDto {
 	@IsNotEmpty()
@@ -7,10 +7,4 @@ export class CreateArticleDto {
 
 	@IsString()
 	readonly text: string;
-
-	@IsString()
-	readonly image: string;
-
-	@IsString()
-	readonly video: string;
 }

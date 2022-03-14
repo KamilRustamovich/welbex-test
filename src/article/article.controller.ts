@@ -8,7 +8,9 @@ import {
 	UseGuards, 
 	UsePipes, 
 	ValidationPipe, 
-	Put 
+	Put, 
+	UseInterceptors,
+	UploadedFile
 } from '@nestjs/common';
 import { ArticleService } from '@app/article/article.service';
 import { CreateArticleDto } from '@app/article/dto/create-article.dto';
@@ -18,21 +20,29 @@ import { User } from '@app/decorators/user.decorator';
 import { UserEntity } from '@app/user/entities/user.entity';
 import { ArticleResponseInterface } from '@app/interfaces/articleResponse.interface';
 import { ArticleEntity } from '@app/article/entities/article.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesService } from '@app/files/files.service';
+import { MFile } from '@app/types/mfile.class';
 
 
 @Controller('articles')
 export class ArticleController {
-	constructor(private readonly articleService: ArticleService) {}
+	constructor(
+		private readonly articleService: ArticleService,
+		private readonly fileService: FilesService
+	) {}
 
 
-	@Post()
+	@Post('create')
 	@UseGuards(AuthGuard)
 	@UsePipes(new ValidationPipe())
+	@UseInterceptors(FileInterceptor('files'))
 	async createArticle(
 		@User() currentUser: UserEntity,
-		@Body('article') createArticleDto: CreateArticleDto
+		@Body('article') createArticleDto: CreateArticleDto,
+		@UploadedFile() file: Express.Multer.File
 	): Promise<ArticleResponseInterface> {
-		const newArticle = await this.articleService.createArticle(currentUser, createArticleDto);
+		const newArticle = await this.articleService.createArticle(currentUser, createArticleDto, file);
 
 		return this.articleService.buildArticleResponse(newArticle);
 	}

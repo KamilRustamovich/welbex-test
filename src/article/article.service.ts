@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
 import { ArticleResponseInterface } from '@app/interfaces/articleResponse.interface';
 import slugify from 'slugify';
+import { FilesService } from '@app/files/files.service';
 
 
 @Injectable()
@@ -15,13 +16,21 @@ export class ArticleService {
 
 	constructor(
 		@InjectRepository(ArticleEntity)
-		private readonly articleRepo: Repository<ArticleEntity>
+		private readonly articleRepo: Repository<ArticleEntity>,
+
+		private readonly filesSerivise: FilesService
 	) {}
 
 
-	async createArticle(currentUser: UserEntity, createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
+	async createArticle(currentUser: UserEntity, createArticleDto: CreateArticleDto, file: Express.Multer.File): Promise<ArticleEntity> {
 		try {
 			const newArticle = await this.articleRepo.create(createArticleDto);
+			const newMedia = await this.filesSerivise.convertImage(file);
+
+			const savedMedia = await this.filesSerivise.saveFiles(newMedia);
+
+			newArticle.mediaURL = savedMedia.url;
+			newArticle.mediaName = savedMedia.name;
 
 			newArticle.author = currentUser;
 			newArticle.slug = this.getSlug(createArticleDto.title);
@@ -33,6 +42,7 @@ export class ArticleService {
 			throw error;
 		}
 	}
+
 
 	async getAllArticles(): Promise<ArticleEntity[]> {
 		try {
@@ -60,6 +70,7 @@ export class ArticleService {
 		}
 	}
 
+
 	async updateArticle(slug: string, currentUserId: number, updateArticleDto: UpdateArticleDto) {
 		try {
 			const article = await this.findArtucleBySlug(slug);
@@ -79,6 +90,7 @@ export class ArticleService {
 		}
 	}
 
+
 	async deleteArticle(slug: string, currentUserId: number): Promise<DeleteResult> {
 		try {
 			const article = await this.findArtucleBySlug(slug);
@@ -94,6 +106,7 @@ export class ArticleService {
 			throw error;
 		}
 	}
+
 
 	buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
 		return { article }

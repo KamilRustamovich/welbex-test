@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { ArticleModule } from '@app/article/article.module';
 import { AuthMiddleware } from './middlewares/auth.middleware';
+import { FilesModule } from './files/files.module';
 
 
 @Module({
@@ -13,6 +14,7 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
 		ConfigModule.forRoot({ isGlobal: true }),
 		TypeOrmModule.forRootAsync(typeOrmConfig),
 		ArticleModule,
+		FilesModule,
 	],
 	controllers: [],
 	providers: [],
