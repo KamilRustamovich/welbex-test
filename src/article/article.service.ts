@@ -24,12 +24,13 @@ export class ArticleService {
 	async createArticle(currentUser: UserEntity, createArticleDto: CreateArticleDto, file: Express.Multer.File): Promise<ArticleEntity> {
 		try {
 			const newArticle = await this.articleRepo.create(createArticleDto);
-			const newMedia = await this.filesSerivise.convertImage(file);
+			if (file) {
+				const newMedia = await this.filesSerivise.convertImage(file);
+				const savedMedia = await this.filesSerivise.saveFiles(newMedia);
 
-			const savedMedia = await this.filesSerivise.saveFiles(newMedia);
-
-			newArticle.mediaURL = savedMedia.url;
-			newArticle.mediaName = savedMedia.name;
+				newArticle.mediaURL = savedMedia.url;
+				newArticle.mediaName = savedMedia.name;
+			}
 
 			newArticle.author = currentUser;
 			newArticle.slug = this.getSlug(createArticleDto.title);
